@@ -16,7 +16,8 @@ public class Main {
                 System.out.println("==== MENU PRINCIPAL ====");
                 System.out.println("1 - Gerenciar Cardápio");
                 System.out.println("2 - Gerenciar Clientes");
-                System.out.println("3 - Sair");
+                System.out.println("3 - Gerenciar Pedidos");
+                System.out.println("4 - Sair");
                 System.out.print("Escolha uma opção: ");
 
                 String entrada = sc.nextLine().trim();
@@ -179,6 +180,35 @@ public class Main {
                         }
                     }
                     case "3" -> {
+                        boolean voltar = false;
+                        while (!voltar) {
+                            System.out.println("\n--- GERENCIAR PEDIDOS ---");
+                            System.out.println("1 - Cadastrar Novo Pedido");
+                            System.out.println("2 - Atualizar Status do Pedido");
+                            System.out.println("3 - Consultar Pedido por Status");
+                            System.out.println("4 - Voltar");
+                            System.out.print("Escolha uma opção: ");
+
+                            String opc = sc.nextLine().trim();
+
+                            switch (opc) {
+                                case "1" -> {
+                                    //Cadastrar Pedido
+                                }
+                                case "2" -> {
+                                    //Atualizar Status do Pedido
+                                }
+                                case "3" -> {
+                                    //Consultar Pedido por Status
+                                }
+                                case "4" ->
+                                    voltar = true;
+                                default ->
+                                    System.out.println("Opção inválida.");
+                            }
+                        }
+                    }
+                    case "4" -> {
                         System.out.println("Saindo...!");
                         break;
                     }
