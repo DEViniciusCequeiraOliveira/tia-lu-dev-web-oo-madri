@@ -11,8 +11,9 @@ public class Main {
             List<ItemCardapio> itens = new ArrayList<>();
             List<Cliente> clientes = new ArrayList<>();
             Random rand = new Random();
+            Boolean saidaSolicitada = false;
 
-            while (true) {
+            while (!saidaSolicitada) {
                 System.out.println("==== MENU PRINCIPAL ====");
                 System.out.println("1 - Gerenciar Cardápio");
                 System.out.println("2 - Gerenciar Clientes");
@@ -209,6 +210,7 @@ public class Main {
                         }
                     }
                     case "4" -> {
+                        saidaSolicitada = true;
                         System.out.println("Saindo...!");
                         break;
                     }
