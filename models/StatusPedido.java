@@ -1,4 +1,4 @@
-enum StatusPedido {
+public enum StatusPedido {
     ACEITO,
     PREPARANDO,
     FEITO,

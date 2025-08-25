@@ -1,4 +1,4 @@
-class ItemCardapio {
+public class ItemCardapio {
     private int codigo;
     private String nome;
     private double valor;

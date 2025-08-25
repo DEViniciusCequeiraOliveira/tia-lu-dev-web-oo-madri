@@ -1,4 +1,4 @@
-class PedidoItemCardapio {
+public class PedidoItemCardapio {
     private ItemCardapio itemCardapio;
     private int quantidade;
 

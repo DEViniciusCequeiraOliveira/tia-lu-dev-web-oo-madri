@@ -1,4 +1,10 @@
-class Pedido {
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Pedido {
+
     private int codigo;
     private Cliente cliente;
     private StatusPedido status;
@@ -12,7 +18,7 @@ class Pedido {
     public Pedido(int codigo, Cliente cliente) {
         this.codigo = codigo;
         this.cliente = cliente;
-        this.status = StatusPedido.ACEITO; // status inicial
+        this.status = StatusPedido.ACEITO;
         this.dataHora = LocalDateTime.now();
         this.itens = new ArrayList<>();
     }
@@ -31,6 +37,10 @@ class Pedido {
 
     public void setCliente(Cliente cliente) {
         this.cliente = cliente;
+    }
+
+    public LocalDateTime getDataHora() {
+        return dataHora;
     }
 
     public void setDataHora(LocalDateTime dataHora) {

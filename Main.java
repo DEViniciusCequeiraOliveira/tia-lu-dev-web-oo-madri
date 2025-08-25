@@ -1,0 +1,105 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        try (Scanner sc = new Scanner(System.in)) {
+            List<ItemCardapio> itens = new ArrayList<>();
+            Random rand = new Random();
+            
+            while (true) {
+                System.out.println("==== MENU PRINCIPAL ====");
+                System.out.println("1 - Gerenciar Cardápio");
+                System.out.println("2 - Sair");
+                System.out.print("Escolha uma opção: ");
+                
+                String entrada = sc.nextLine().trim();
+                
+                if (entrada.equals("1")) {
+                    boolean voltar = false;
+                    while (!voltar) {
+                        System.out.println("\n--- GERENCIAR CARDÁPIO ---");
+                        System.out.println("1 - Cadastrar Novo Item");
+                        System.out.println("2 - Listar Itens");
+                        System.out.println("3 - Voltar");
+                        System.out.print("Escolha uma opção: ");
+                        
+                        String opc = sc.nextLine().trim();
+                        
+                        switch (opc) {
+                            case "1" -> {
+                                String nome;
+                                while (true) {
+                                    System.out.print("Nome do item: ");
+                                    nome = sc.nextLine().trim();
+                                    if (nome.isEmpty()) {
+                                        System.out.println("Erro: o nome não pode ficar vazio.");
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                
+                                double valor;
+                                while (true) {
+                                    System.out.print("Valor do item (ex: 12.50): ");
+                                    String valorStr = sc.nextLine().trim();
+                                    try {
+                                        valor = Double.parseDouble(valorStr);
+                                        if (valor < 0) {
+                                            System.out.println("Erro: o valor não pode ser negativo.");
+                                        } else {
+                                            break;
+                                        }
+                                    } catch (NumberFormatException e) {
+                                        System.out.println("Erro: informe um número válido (use ponto para decimal).");
+                                    }
+                                }
+                                int codigoAleatorio;
+                                while (true) {
+                                    codigoAleatorio = rand.nextInt(9000) + 1000;
+                                    boolean existe = false;
+                                    for (ItemCardapio it : itens) {
+                                        if (it.getCodigo() == codigoAleatorio) {
+                                            existe = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!existe) break;
+                                }
+                                
+                                ItemCardapio novo = new ItemCardapio(codigoAleatorio, nome, valor);
+                                itens.add(novo);
+                                System.out.println("Item cadastrado com sucesso!\n");
+                            }
+                                
+                            case "2" -> {
+                                System.out.println("\n--- ITENS DO CARDÁPIO ---");
+                                if (itens.isEmpty()) {
+                                    System.out.println("Nenhum item cadastrado.");
+                                } else {
+                                    for (ItemCardapio it : itens) {
+                                        System.out.printf("Código: %d | Nome: %s | Valor: R$ %.2f%n",
+                                                it.getCodigo(), it.getNome(), it.getValor());
+                                    }
+                                }
+                                System.out.println();
+                            }
+                                
+                            case "3" -> voltar = true;
+                                
+                            default -> System.out.println("Opção inválida.");
+                        }
+                    }
+                    
+                } else if (entrada.equals("2")) {
+                    System.out.println("Saindo...!");
+                    break;
+                } else {
+                    System.out.println("Opção inválida.");
+                }
+            }
+        }
+    }
+}
