@@ -24,10 +24,9 @@ public class Cliente {
     public String getTelefone() {
         return telefone;
     }
+
+    public String toString() {
+        return String.format("Código: %d | Nome: %s | Telefone: %s", codigo, nome, telefone);
+    }
+
 }
-
-
-
-
-
-

@@ -36,4 +36,8 @@ public class ItemCardapio {
     public void setValor(double valor) {
         this.valor = valor;
     }
+
+    public String toString() {
+        return String.format("Código: %d | Nome: %s | Valor: R$ %.2f", codigo, nome, valor);
+    }
 }
