@@ -25,7 +25,8 @@ public class Main {
                 System.out.println("1 - Gerenciar Cardápio");
                 System.out.println("2 - Gerenciar Clientes");
                 System.out.println("3 - Gerenciar Pedidos");
-                System.out.println("4 - Sair");
+                System.out.println("4 - Gerenciar Relatórios");
+                System.out.println("5 - Sair");
                 System.out.print("Escolha uma opção: ");
 
                 String entrada = sc.nextLine().trim();
@@ -271,6 +272,38 @@ public class Main {
                         }
                     }
                     case "4" -> {
+                        boolean voltar = false;
+                        
+                        while (!voltar) {
+                            System.out.println("\n--- GERENCIAR RELATÓRIOS ---");
+                            System.out.println("1 - Gerar Relatório Simplificado");
+                            System.out.println("2 - Gerar Relatório Detalhado");
+                            System.out.println("3 - Voltar");
+                            System.out.print("Escolha uma opção: ");
+
+                            String opc = sc.nextLine().trim();
+
+                            switch (opc) {
+                                case "1" -> {
+                                    // Implementação do relatório simplificado (um resumo do dia)
+
+                                }
+
+                                case "2" -> {
+                                    // Implementação do relatório detalhado (listando os pedidos e o total de cada um)
+                                    
+                                }
+
+                                case "3" -> {
+                                    voltar = true;
+                                }
+
+                                default ->
+                                    System.out.println("Opção inválida.");
+                            }
+                        }
+                    }
+                    case "5" -> {
                         saidaSolicitada = true;
                         System.out.println("Saindo...!");
                         break;
