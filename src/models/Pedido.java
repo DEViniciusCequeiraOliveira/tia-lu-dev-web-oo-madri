@@ -1,7 +1,9 @@
+package models;
+
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.format.DateTimeFormatter;
 
 public class Pedido {
 
@@ -10,8 +12,6 @@ public class Pedido {
     private StatusPedido status;
     private LocalDateTime dataHora;
     private List<PedidoItemCardapio> itens;
-
-    // Construtores
 
     public Pedido() {
 
@@ -25,8 +25,6 @@ public class Pedido {
         this.itens = new ArrayList<>();
     }
 
-    // Getters
-
     public int getCodigo() {
         return codigo;
     }
@@ -34,20 +32,6 @@ public class Pedido {
     public Cliente getCliente() {
         return cliente;
     }
-
-    public LocalDateTime getDataHora() {
-        return dataHora;
-    }
-    
-    public StatusPedido getStatus() {
-        return status;
-    }
-
-    public List<PedidoItemCardapio> getItens() {
-        return itens;
-    }
-
-    // Setters
 
     public void setCodigo(int codigo) {
         this.codigo = codigo;
@@ -57,25 +41,24 @@ public class Pedido {
         this.cliente = cliente;
     }
 
+    public LocalDateTime getDataHora() {
+        return dataHora;
+    }
+
     public void setDataHora(LocalDateTime dataHora) {
         this.dataHora = dataHora;
+    }
+
+    public StatusPedido getStatus() {
+        return status;
     }
 
     public void setStatus(StatusPedido status) {
         this.status = status;
     }
 
-    // Metodos Adicionais
-
-    public boolean atualizarStatus() {
-        List<StatusPedido> statusPossiveis = StatusPedido.toList();
-        int indiceStatusAtual = statusPossiveis.indexOf(this.status);
-        boolean ultimoStatusAlcancado = indiceStatusAtual == (statusPossiveis.size() - 1);
-        if (!ultimoStatusAlcancado) {
-            this.status = statusPossiveis.get(indiceStatusAtual + 1);
-            return true;
-        }
-        return false;
+    public List<PedidoItemCardapio> getItens() {
+        return itens;
     }
 
     public String toString() {
@@ -89,5 +72,4 @@ public class Pedido {
         stringInstancia += "\n" + "-".repeat(70);
         return stringInstancia;
     }
-
 }

@@ -1,3 +1,5 @@
+package models;
+
 public class Cliente {
     private int codigo;
     private String nome;
@@ -28,5 +30,4 @@ public class Cliente {
     public String toString() {
         return String.format("Código: %d | Nome: %s | Telefone: %s", codigo, nome, telefone);
     }
-
 }
