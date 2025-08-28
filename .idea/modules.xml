@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/tia-lu-dev-web-oo-madri.iml" filepath="$PROJECT_DIR$/.idea/tia-lu-dev-web-oo-madri.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tia-lu-dev-web-oo-madri.iml" filepath="$PROJECT_DIR$/tia-lu-dev-web-oo-madri.iml" />
     </modules>
   </component>
 </project>

@@ -1,3 +1,10 @@
+import models.Cliente;
+import models.ItemCardapio;
+import models.Pedido;
+import models.StatusPedido;
+import services.ClienteServices;
+import services.PedidoServices;
+import services.StatusPedidoServices;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +17,28 @@ public class Main {
         try (Scanner sc = new Scanner(System.in)) {
             List<ItemCardapio> itens = new ArrayList<>();
             List<Cliente> clientes = new ArrayList<>();
-            Random rand = new Random();
+            List<Pedido> pedidos = new ArrayList<>();
 
-            while (true) {
+            ClienteServices clienteServices = new ClienteServices(clientes);
+            PedidoServices pedidoServices = new PedidoServices(pedidos);
+
+            Random rand = new Random();
+            boolean saidaSolicitada = false;
+
+            String msgSemPedidos = "Nenhum pedido cadastrado.";
+            String msgSemClientes = "Nenhum cliente cadastrado.";
+            String msgSemItens = "Nenhum item cadastrado.";
+
+            itens.add(new ItemCardapio(1029, "MACARRONADA", 10));
+            clientes.add(new Cliente(4821, "DENILSON SANTOS", "75 9 0101-0202"));
+
+            while (!saidaSolicitada) {
                 System.out.println("==== MENU PRINCIPAL ====");
                 System.out.println("1 - Gerenciar Cardápio");
                 System.out.println("2 - Gerenciar Clientes");
                 System.out.println("3 - Gerenciar Pedidos");
-                System.out.println("4 - Sair");
+                System.out.println("4 - Gerenciar Relatórios");
+                System.out.println("5 - Sair");
                 System.out.print("Escolha uma opção: ");
 
                 String entrada = sc.nextLine().trim();
@@ -96,10 +117,10 @@ public class Main {
                                 }
 
                                 case "3" ->
-                                    voltar = true;
+                                        voltar = true;
 
                                 default ->
-                                    System.out.println("Opção inválida.");
+                                        System.out.println("Opção inválida.");
                             }
                         }
 
@@ -172,10 +193,10 @@ public class Main {
                                 }
 
                                 case "3" ->
-                                    voltar = true;
+                                        voltar = true;
 
                                 default ->
-                                    System.out.println("Opção inválida.");
+                                        System.out.println("Opção inválida.");
                             }
                         }
                     }
@@ -193,27 +214,121 @@ public class Main {
 
                             switch (opc) {
                                 case "1" -> {
-                                    //Cadastrar Pedido
+
+                                    // Verificar se existem clientes ou itens cadastrados
+                                    if (itens.isEmpty()) {
+                                        System.out.println(msgSemItens);
+                                        break;
+                                    }
+                                    if (clientes.isEmpty()) {
+                                        System.out.println(msgSemClientes);
+                                        break;
+                                    }
+
+                                    // Selecionar um cliente válido
+                                    Cliente cliente = clienteServices.selecionar();
+
+                                    // Iniciar o novo pedido do cliente
+                                    int codigo = pedidoServices.obterNovoCodigo();
+                                    Pedido pedido = new Pedido(codigo, cliente);
+                                    System.out.println("\nPedido iniciado para " + cliente.getNome() + "...\n");
+
+                                    // Selecionar os itens do cardápio para o pedido
+                                    PedidoServices.cadastrarItens(pedido, itens);
+
+                                    // Mostrar informações do pedido
+                                    System.out.println("\n" + "-".repeat(70));
+                                    System.out.println(pedido.toString());
+                                    System.out.println("-".repeat(70));
+                                    System.out.println();
+                                    System.out.print("Digite \"s\" para confirmar o pedido... ");
+                                    String resposta = sc.nextLine().trim();
+                                    if (resposta.equals("s") || resposta.equals("S")) {
+                                        pedidos.add(pedido);
+                                        System.out.println("Pedido cadastrado com sucesso.");
+                                    } else {
+                                        System.out.println("Pedido cancelado.");
+                                    }
+
                                 }
                                 case "2" -> {
-                                    //Atualizar Status do Pedido
+                                    if (pedidos.isEmpty()) {
+                                        System.out.println(msgSemPedidos);
+                                        break;
+                                    }
+                                    Pedido pedido = pedidoServices.selecionar();
+                                    StatusPedido statusAtual = pedido.getStatus();
+                                    if (PedidoServices.atualizarStatus(pedido)) {
+                                        System.out.println("Status alterado de " + statusAtual + " para " + pedido.getStatus() + ".");
+                                    } else {
+                                        System.out.println("Status " + statusAtual + " não pôde ser alterado.");
+                                    }
+
                                 }
                                 case "3" -> {
-                                    //Consultar Pedido por Status
+                                    // Consultar Pedido por Status
+                                    if (pedidos.isEmpty()) {
+                                        System.out.println(msgSemPedidos);
+                                        break;
+                                    }
+
+                                    // Selecionar um status válido
+                                    System.out.println();
+                                    StatusPedido status = StatusPedidoServices.selecionar("Status a verificar: ");
+
+                                    // Exibir somente pedidos contendo esse status
+                                    boolean pedidoExibido = false;
+                                    for (Pedido pedido: pedidos) {
+                                        if (pedido.getStatus().equals(status)) {
+                                            System.out.println(pedido.toString());
+                                            pedidoExibido = true;
+                                        }
+                                    }
+                                    if (!pedidoExibido) {
+                                        System.out.println("Nenhum pedido encontrado com este status.");
+                                    }
                                 }
                                 case "4" ->
-                                    voltar = true;
+                                        voltar = true;
                                 default ->
-                                    System.out.println("Opção inválida.");
+                                        System.out.println("Opção inválida.");
                             }
                         }
                     }
                     case "4" -> {
+                        boolean voltar = false;
+                        while (!voltar) {
+                            System.out.println("\n--- GERENCIAR RELATÓRIOS ---");
+                            System.out.println("1 - Gerar Relatório Simplificado");
+                            System.out.println("2 - Gerar Relatório Detalhado");
+                            System.out.println("3 - Voltar");
+                            System.out.print("Escolha uma opção: ");
+
+                            String opc = sc.nextLine().trim();
+
+                            switch (opc) {
+                                case "1" -> {
+                                    // Implementação do relatório simplificado (um resumo do dia)
+                                }
+                                case "2" -> {
+                                    // Implementação do relatório detalhado (listando os pedidos e o total de cada um)
+
+                                }
+                                case "3" -> {
+                                    voltar = true;
+                                }
+                                default ->
+                                        System.out.println("Opção inválida.");
+                            }
+                        }
+                    }
+                    case "5" -> {
+                        saidaSolicitada = true;
                         System.out.println("Saindo...!");
                         break;
                     }
                     default ->
-                        System.out.println("Opção inválida.");
+                            System.out.println("Opção inválida.");
                 }
             }
         }

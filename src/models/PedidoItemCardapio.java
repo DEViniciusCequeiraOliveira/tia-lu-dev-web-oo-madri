@@ -1,3 +1,5 @@
+package models;
+
 public class PedidoItemCardapio {
     private ItemCardapio itemCardapio;
     private int quantidade;
@@ -21,5 +23,10 @@ public class PedidoItemCardapio {
 
     public void setQuantidade(int quantidade) {
         this.quantidade = quantidade;
+    }
+
+    public String toString() {
+        ItemCardapio item = this.itemCardapio;
+        return String.format("%s [R$ %.2f] (x%d)", item.getNome(), item.getValor(), this.quantidade);
     }
 }

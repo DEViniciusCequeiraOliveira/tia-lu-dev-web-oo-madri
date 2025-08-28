@@ -1,5 +1,7 @@
+package models;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,5 +59,17 @@ public class Pedido {
 
     public List<PedidoItemCardapio> getItens() {
         return itens;
+    }
+
+    public String toString() {
+        DateTimeFormatter formatoDataHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String cabecalhoTemplate = "Pedido: %d | Horário: %s | Status: %s";
+        String cabecalho = String.format(cabecalhoTemplate, codigo, dataHora.format(formatoDataHora), status);
+        String stringInstancia = "-".repeat(70) + "\n" + cabecalho + "\n" + this.cliente.toString();
+        for (PedidoItemCardapio pedidoItem : itens) {
+            stringInstancia += "\n" + "- " + pedidoItem.toString();
+        }
+        stringInstancia += "\n" + "-".repeat(70);
+        return stringInstancia;
     }
 }
