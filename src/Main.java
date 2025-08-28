@@ -1,36 +1,38 @@
-import models.Cliente;
-import models.ItemCardapio;
-import models.Pedido;
-import models.StatusPedido;
-import services.ClienteServices;
-import services.PedidoServices;
-import services.StatusPedidoServices;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+import models.Cliente;
+import models.ItemCardapio;
+import models.Pedido;
+import models.StatusPedido;
+import repository.ClienteRepository;
+import repository.ItemCardapioRepository;
+import services.ClienteService;
+import services.ItemCardapioService;
+import services.PedidoService;
+import services.StatusPedidoService;
+import utils.InputValidador;
+
 public class Main {
 
     public static void main(String[] args) {
         try (Scanner sc = new Scanner(System.in)) {
-            List<ItemCardapio> itens = new ArrayList<>();
-            List<Cliente> clientes = new ArrayList<>();
             List<Pedido> pedidos = new ArrayList<>();
 
-            ClienteServices clienteServices = new ClienteServices(clientes);
-            PedidoServices pedidoServices = new PedidoServices(pedidos);
+            ClienteService clienteService = new ClienteService(new ClienteRepository(new ArrayList<>(), new Random()));
+            ItemCardapioService itemCardapioService = new ItemCardapioService(new ItemCardapioRepository(new ArrayList<>(), new Random()));
 
-            Random rand = new Random();
+            PedidoService pedidoServices = new PedidoService(pedidos);
+
             boolean saidaSolicitada = false;
 
             String msgSemPedidos = "Nenhum pedido cadastrado.";
             String msgSemClientes = "Nenhum cliente cadastrado.";
             String msgSemItens = "Nenhum item cadastrado.";
 
-            itens.add(new ItemCardapio(1029, "MACARRONADA", 10));
-            clientes.add(new Cliente(4821, "DENILSON SANTOS", "75 9 0101-0202"));
 
             while (!saidaSolicitada) {
                 System.out.println("==== MENU PRINCIPAL ====");
@@ -54,77 +56,28 @@ public class Main {
                             System.out.print("Escolha uma opção: ");
 
                             String opc = sc.nextLine().trim();
-
                             switch (opc) {
                                 case "1" -> {
-                                    String nome;
-                                    while (true) {
-                                        System.out.print("Nome do item: ");
-                                        nome = sc.nextLine().trim();
-                                        if (nome.isEmpty()) {
-                                            System.out.println("Erro: o nome não pode ficar vazio.");
-                                        } else {
-                                            break;
-                                        }
-                                    }
-
-                                    double valor;
-                                    while (true) {
-                                        System.out.print("Valor do item (ex: 12.50): ");
-                                        String valorStr = sc.nextLine().trim();
-                                        try {
-                                            valor = Double.parseDouble(valorStr);
-                                            if (valor < 0) {
-                                                System.out.println("Erro: o valor não pode ser negativo.");
-                                            } else {
-                                                break;
-                                            }
-                                        } catch (NumberFormatException e) {
-                                            System.out.println("Erro: informe um número válido (use ponto para decimal).");
-                                        }
-                                    }
-                                    int codigoAleatorio;
-                                    while (true) {
-                                        codigoAleatorio = rand.nextInt(9000) + 1000;
-                                        boolean existe = false;
-                                        for (ItemCardapio it : itens) {
-                                            if (it.getCodigo() == codigoAleatorio) {
-                                                existe = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!existe) {
-                                            break;
-                                        }
-                                    }
-
-                                    ItemCardapio novo = new ItemCardapio(codigoAleatorio, nome, valor);
-                                    itens.add(novo);
+                                    String nome = capturarNomeItemCardapio(sc);
+                                    double valor = capturarValorItemCardapio(sc);
+                                    itemCardapioService.registrarNovoItemCardapio(new ItemCardapio(nome, valor));
                                     System.out.println("Item cadastrado com sucesso!\n");
                                 }
-
                                 case "2" -> {
                                     System.out.println("\n--- ITENS DO CARDÁPIO ---");
-                                    if (itens.isEmpty()) {
+                                    if (itemCardapioService.listarTodos().isEmpty()) {
                                         System.out.println("Nenhum item cadastrado.");
                                     } else {
-                                        for (ItemCardapio it : itens) {
-                                            System.out.printf("Código: %d | Nome: %s | Valor: R$ %.2f%n",
-                                                    it.getCodigo(), it.getNome(), it.getValor());
-                                        }
+                                        itemCardapioService.listarTodos().forEach(System.out::println);
                                     }
                                     System.out.println();
                                 }
-
-                                case "3" ->
-                                        voltar = true;
-
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                case "3" -> voltar = true;
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
-
                     }
+
                     case "2" -> {
                         boolean voltar = false;
                         while (!voltar) {
@@ -138,68 +91,28 @@ public class Main {
 
                             switch (opc) {
                                 case "1" -> {
-                                    String nome;
-                                    while (true) {
-                                        System.out.print("Nome do cliente: ");
-                                        nome = sc.nextLine().trim();
-                                        if (nome.isEmpty()) {
-                                            System.out.println("Erro: o nome não pode ficar vazio.");
-                                        } else {
-                                            break;
-                                        }
-                                    }
-
-                                    String telefone;
-                                    while (true) {
-                                        System.out.print("Telefone do cliente (ex: 99 99999-9999): ");
-                                        telefone = sc.nextLine().trim();
-                                        if (telefone.isEmpty()) {
-                                            System.out.println("Erro: o telefone não pode ficar vazio.");
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                    int codigoAleatorio;
-                                    while (true) {
-                                        codigoAleatorio = rand.nextInt(9000) + 1000;
-                                        boolean existe = false;
-                                        for (Cliente cl : clientes) {
-                                            if (cl.getCodigo() == codigoAleatorio) {
-                                                existe = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!existe) {
-                                            break;
-                                        }
-                                    }
-
-                                    Cliente novo = new Cliente(codigoAleatorio, nome, telefone);
-                                    clientes.add(novo);
+                                    String nome = capturarNomeCliente(sc);
+                                    String telefone = capturarTelefoneCliente(sc);
+                                    clienteService.registrarNovoCliente(new Cliente(nome, telefone));
                                     System.out.println("Cliente cadastrado com sucesso!\n");
                                 }
 
                                 case "2" -> {
                                     System.out.println("\n--- CLIENTES ---");
-                                    if (clientes.isEmpty()) {
+                                    if (clienteService.listarTodos().isEmpty()) {
                                         System.out.println("Nenhum cliente cadastrado.");
                                     } else {
-                                        for (Cliente cl : clientes) {
-                                            System.out.printf("Código: %d | Nome: %s | Telefone: %s%n",
-                                                    cl.getCodigo(), cl.getNome(), cl.getTelefone());
-                                        }
+                                        clienteService.listarTodos().forEach(System.out::println);
                                     }
-                                    System.out.println();
                                 }
 
-                                case "3" ->
-                                        voltar = true;
+                                case "3" -> voltar = true;
 
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
                     }
+
                     case "3" -> {
                         boolean voltar = false;
                         while (!voltar) {
@@ -216,17 +129,27 @@ public class Main {
                                 case "1" -> {
 
                                     // Verificar se existem clientes ou itens cadastrados
-                                    if (itens.isEmpty()) {
+                                    if (itemCardapioService.listarTodos().isEmpty()) {
                                         System.out.println(msgSemItens);
                                         break;
                                     }
-                                    if (clientes.isEmpty()) {
+                                    if (clienteService.listarTodos().isEmpty()) {
                                         System.out.println(msgSemClientes);
                                         break;
                                     }
 
                                     // Selecionar um cliente válido
-                                    Cliente cliente = clienteServices.selecionar();
+                                    Cliente cliente;
+                                    while (true) {
+                                        System.out.println();
+                                        clienteService.listarTodos().forEach(System.out::println);
+                                        int codigoCliente = InputValidador.lerInt("Código do cliente: ", "Erro: o código informado não é numérico.");
+                                        cliente = clienteService.encontrarPorCodigo(codigoCliente);
+                                        if (cliente != null) {
+                                            break;
+                                        }
+                                        System.out.println("Erro: nenhum cliente com o código informado.");
+                                    }
 
                                     // Iniciar o novo pedido do cliente
                                     int codigo = pedidoServices.obterNovoCodigo();
@@ -234,7 +157,7 @@ public class Main {
                                     System.out.println("\nPedido iniciado para " + cliente.getNome() + "...\n");
 
                                     // Selecionar os itens do cardápio para o pedido
-                                    PedidoServices.cadastrarItens(pedido, itens);
+                                    PedidoService.cadastrarItens(pedido, itemCardapioService);
 
                                     // Mostrar informações do pedido
                                     System.out.println("\n" + "-".repeat(70));
@@ -258,7 +181,7 @@ public class Main {
                                     }
                                     Pedido pedido = pedidoServices.selecionar();
                                     StatusPedido statusAtual = pedido.getStatus();
-                                    if (PedidoServices.atualizarStatus(pedido)) {
+                                    if (PedidoService.atualizarStatus(pedido)) {
                                         System.out.println("Status alterado de " + statusAtual + " para " + pedido.getStatus() + ".");
                                     } else {
                                         System.out.println("Status " + statusAtual + " não pôde ser alterado.");
@@ -274,11 +197,11 @@ public class Main {
 
                                     // Selecionar um status válido
                                     System.out.println();
-                                    StatusPedido status = StatusPedidoServices.selecionar("Status a verificar: ");
+                                    StatusPedido status = StatusPedidoService.selecionar("Status a verificar: ");
 
                                     // Exibir somente pedidos contendo esse status
                                     boolean pedidoExibido = false;
-                                    for (Pedido pedido: pedidos) {
+                                    for (Pedido pedido : pedidos) {
                                         if (pedido.getStatus().equals(status)) {
                                             System.out.println(pedido.toString());
                                             pedidoExibido = true;
@@ -288,13 +211,12 @@ public class Main {
                                         System.out.println("Nenhum pedido encontrado com este status.");
                                     }
                                 }
-                                case "4" ->
-                                        voltar = true;
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                case "4" -> voltar = true;
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
                     }
+
                     case "4" -> {
                         boolean voltar = false;
                         while (!voltar) {
@@ -317,20 +239,75 @@ public class Main {
                                 case "3" -> {
                                     voltar = true;
                                 }
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
                     }
+
                     case "5" -> {
                         saidaSolicitada = true;
                         System.out.println("Saindo...!");
                         break;
                     }
-                    default ->
-                            System.out.println("Opção inválida.");
+                    default -> System.out.println(
+                            "Opção inválida.");
                 }
             }
         }
     }
+
+    private static double capturarValorItemCardapio(Scanner sc) {
+        while (true) {
+            System.out.print("Valor do item (ex: 12.50): ");
+            String valorStr = sc.nextLine().trim();
+            try {
+                double valor = Double.parseDouble(valorStr);
+                if (valor < 0) {
+                    System.out.println("Erro: o valor não pode ser negativo.");
+                } else {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: informe um número válido (use ponto para decimal).");
+            }
+        }
+    }
+
+    private static String capturarNomeItemCardapio(Scanner sc) {
+        while (true) {
+            System.out.print("Nome do item: ");
+            String nome = sc.nextLine().trim();
+            if (nome.isEmpty()) {
+                System.out.println("Erro: o nome não pode ficar vazio.");
+            } else {
+                return nome;
+            }
+        }
+    }
+
+    private static String capturarNomeCliente(Scanner sc) {
+        while (true) {
+            System.out.print("Nome do cliente: ");
+            String nome = sc.nextLine().trim();
+            if (nome.isEmpty()) {
+                System.out.println("Erro: o nome não pode ficar vazio.");
+            } else {
+                return nome;
+            }
+        }
+    }
+
+    private static String capturarTelefoneCliente(Scanner sc) {
+        while (true) {
+            System.out.print("Telefone do cliente (ex: 99 99999-9999): ");
+            String telefone = sc.nextLine().trim();
+            if (telefone.isEmpty()) {
+                System.out.println("Erro: o telefone não pode ficar vazio.");
+            } else {
+                return telefone;
+            }
+
+        }
+    }
+
 }

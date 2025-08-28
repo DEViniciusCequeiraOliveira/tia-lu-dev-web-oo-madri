@@ -9,6 +9,11 @@ public class ItemCardapio {
 
     }
 
+    public ItemCardapio(String nome, double valor) {
+        this.nome = nome;
+        this.valor = valor;
+    }
+
     public ItemCardapio(int codigo, String nome, double valor) {
         this.codigo = codigo;
         this.nome = nome;
@@ -39,6 +44,7 @@ public class ItemCardapio {
         this.valor = valor;
     }
 
+    @Override
     public String toString() {
         return String.format("Código: %d | Nome: %s | Valor: R$ %.2f", codigo, nome, valor);
     }

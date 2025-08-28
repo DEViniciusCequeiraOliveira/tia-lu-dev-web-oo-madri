@@ -10,10 +10,10 @@ import models.PedidoItemCardapio;
 import models.StatusPedido;
 import utils.InputValidador;
 
-public class PedidoServices {
+public class PedidoService {
     List<Pedido> pedidos;
 
-    public PedidoServices(List<Pedido> pedidos) {
+    public PedidoService(List<Pedido> pedidos) {
         this.pedidos = pedidos;
     }
 
@@ -65,19 +65,29 @@ public class PedidoServices {
         return false;
     }
 
-    public static void cadastrarItens(Pedido pedido, List<ItemCardapio> itensDoCardapio) {
+    public static void cadastrarItens(Pedido pedido, ItemCardapioService itemCardapioService) {
         Scanner sc = new Scanner(System.in);
-        ItemCardapioServices itemCardapioServices = new ItemCardapioServices(itensDoCardapio);
         boolean atendenteFinalizou = false;
         List<PedidoItemCardapio> itensDoPedido = pedido.getItens();
         do {
-            ItemCardapio item = itemCardapioServices.selecionar();
+            ItemCardapio item;
+
+            while (true) {
+                //todo: colocar print aqui
+                //listarTodos();
+                int codigoItem = InputValidador.lerInt("Código do item do cardápio: ", "\nErro: o código informado não é numerico.\n");
+                item = itemCardapioService.encontrarPorCodigo(codigoItem);
+                if (item != null) {
+                    break;
+                }
+                System.out.println("\nErro: nenhum item no cardápio com o código informado.\n");
+            }
             int quantidade = InputValidador.lerInt("Informe a quantidade para " + item.getNome() + ": ", "Erro: quantidade informada não é um número válido.");
             itensDoPedido.add(new PedidoItemCardapio(item, quantidade));
             System.out.println("Item \"" + item.getNome() + "\" (" + quantidade + "x) adicionado com sucesso ao pedido.\n");
             System.out.print("Adicionar um novo item (digite \"n\" para finalizar)? ");
             String resposta = sc.nextLine().trim();
-            atendenteFinalizou = resposta.equals("n") || resposta.equals("N");;
+            atendenteFinalizou = resposta.equals("n") || resposta.equals("N");
 
         } while (!atendenteFinalizou);
     }

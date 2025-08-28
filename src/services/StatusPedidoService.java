@@ -1,12 +1,11 @@
 package services;
 
+import java.util.Arrays;
+import java.util.List;
 import models.StatusPedido;
 import utils.InputValidador;
 
-import java.util.Arrays;
-import java.util.List;
-
-public class StatusPedidoServices {
+public class StatusPedidoService {
 
     public static void mostrarTodos() {
         int numeroAtual = 1;
