@@ -8,52 +8,37 @@ import models.ItemCardapio;
 import models.Pedido;
 import models.PedidoItemCardapio;
 import models.StatusPedido;
+import repository.PedidoRepository;
 import utils.InputValidador;
 
 public class PedidoService {
-    List<Pedido> pedidos;
+    private PedidoRepository pedidoRepository;
 
-    public PedidoService(List<Pedido> pedidos) {
-        this.pedidos = pedidos;
+    public PedidoService(PedidoRepository pedidoRepository) {
+        this.pedidoRepository = pedidoRepository;
     }
 
     public Pedido encontrarPorCodigo(int codigoAlvo) {
-        for (Pedido pedido : this.pedidos) {
-            if (pedido.getCodigo() == codigoAlvo) {
-                return pedido;
-            }
-        }
-        return null;
+        return this.pedidoRepository.findById(codigoAlvo);
     }
 
-    public void listarTodos() {
-        this.pedidos.forEach(System.out::println);
-        System.out.println();
+    public List<Pedido> encotrarPorStatus(StatusPedido statusPedido) {
+        return this.pedidoRepository.findByStatus(statusPedido);
+    }
+
+    public List<Pedido> listarTodos() {
+        return this.pedidoRepository.findAll();
     }
 
     public int obterNovoCodigo() {
-        int novoCodigo = 1;
-        for (Pedido pedido : this.pedidos) {
-            int codigoPedido = pedido.getCodigo();
-            if (codigoPedido >= novoCodigo) {
-                novoCodigo = codigoPedido + 1;
-            }
-        }
-        return novoCodigo;
+        return this.pedidoRepository.gerarCodigo();
     }
 
-    public Pedido selecionar() {
-        while (true) {
-            listarTodos();
-            int codigoPedido = InputValidador.lerInt("Código do pedido: ", "Erro: o código informado não é numérico.");
-            Pedido pedido = encontrarPorCodigo(codigoPedido);
-            if (pedido != null) {
-                return pedido;
-            }
-            System.out.println("Erro: nenhum pedido com o código informado.");
-        }
+    public void cadastrarPedido(Pedido pedido) {
+        pedidoRepository.create(pedido);
     }
 
+    //TODO: REFATORAR
     public static boolean atualizarStatus(Pedido pedido) {
         List<StatusPedido> statusPossiveis = Arrays.asList(StatusPedido.values());
         int indiceStatusAtual = statusPossiveis.indexOf(pedido.getStatus());
@@ -63,33 +48,6 @@ public class PedidoService {
             return true;
         }
         return false;
-    }
-
-    public static void cadastrarItens(Pedido pedido, ItemCardapioService itemCardapioService) {
-        Scanner sc = new Scanner(System.in);
-        boolean atendenteFinalizou = false;
-        List<PedidoItemCardapio> itensDoPedido = pedido.getItens();
-        do {
-            ItemCardapio item;
-
-            while (true) {
-                //todo: colocar print aqui
-                //listarTodos();
-                int codigoItem = InputValidador.lerInt("Código do item do cardápio: ", "\nErro: o código informado não é numerico.\n");
-                item = itemCardapioService.encontrarPorCodigo(codigoItem);
-                if (item != null) {
-                    break;
-                }
-                System.out.println("\nErro: nenhum item no cardápio com o código informado.\n");
-            }
-            int quantidade = InputValidador.lerInt("Informe a quantidade para " + item.getNome() + ": ", "Erro: quantidade informada não é um número válido.");
-            itensDoPedido.add(new PedidoItemCardapio(item, quantidade));
-            System.out.println("Item \"" + item.getNome() + "\" (" + quantidade + "x) adicionado com sucesso ao pedido.\n");
-            System.out.print("Adicionar um novo item (digite \"n\" para finalizar)? ");
-            String resposta = sc.nextLine().trim();
-            atendenteFinalizou = resposta.equals("n") || resposta.equals("N");
-
-        } while (!atendenteFinalizou);
     }
 
 }

@@ -6,7 +6,7 @@ import models.StatusPedido;
 import utils.InputValidador;
 
 public class StatusPedidoService {
-
+/*
     public static void mostrarTodos() {
         int numeroAtual = 1;
         for (StatusPedido status : StatusPedido.values()) {
@@ -28,4 +28,5 @@ public class StatusPedidoService {
             System.out.print("\n" + prompt);
         }
     }
+ */
 }

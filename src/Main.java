@@ -1,38 +1,27 @@
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
-
-import models.Cliente;
-import models.ItemCardapio;
-import models.Pedido;
-import models.StatusPedido;
+import models.*;
 import repository.ClienteRepository;
 import repository.ItemCardapioRepository;
+import repository.PedidoRepository;
 import services.ClienteService;
 import services.ItemCardapioService;
 import services.PedidoService;
-import services.StatusPedidoService;
 import utils.InputValidador;
 
+
 public class Main {
+    static final String msgSemPedidos = "Nenhum pedido cadastrado.";
+    static final String msgSemClientes = "Nenhum cliente cadastrado.";
+    static final String msgSemItens = "Nenhum item cadastrado.";
 
     public static void main(String[] args) {
         try (Scanner sc = new Scanner(System.in)) {
-            List<Pedido> pedidos = new ArrayList<>();
-
             ClienteService clienteService = new ClienteService(new ClienteRepository(new ArrayList<>(), new Random()));
             ItemCardapioService itemCardapioService = new ItemCardapioService(new ItemCardapioRepository(new ArrayList<>(), new Random()));
-
-            PedidoService pedidoServices = new PedidoService(pedidos);
+            PedidoService pedidoService = new PedidoService(new PedidoRepository(new ArrayList<>()));
 
             boolean saidaSolicitada = false;
-
-            String msgSemPedidos = "Nenhum pedido cadastrado.";
-            String msgSemClientes = "Nenhum cliente cadastrado.";
-            String msgSemItens = "Nenhum item cadastrado.";
-
 
             while (!saidaSolicitada) {
                 System.out.println("==== MENU PRINCIPAL ====");
@@ -139,25 +128,36 @@ public class Main {
                                     }
 
                                     // Selecionar um cliente válido
-                                    Cliente cliente;
-                                    while (true) {
-                                        System.out.println();
-                                        clienteService.listarTodos().forEach(System.out::println);
-                                        int codigoCliente = InputValidador.lerInt("Código do cliente: ", "Erro: o código informado não é numérico.");
-                                        cliente = clienteService.encontrarPorCodigo(codigoCliente);
-                                        if (cliente != null) {
-                                            break;
-                                        }
-                                        System.out.println("Erro: nenhum cliente com o código informado.");
-                                    }
+                                    Cliente cliente = selecionarCliente(clienteService);
 
                                     // Iniciar o novo pedido do cliente
-                                    int codigo = pedidoServices.obterNovoCodigo();
+                                    int codigo = pedidoService.obterNovoCodigo();
                                     Pedido pedido = new Pedido(codigo, cliente);
                                     System.out.println("\nPedido iniciado para " + cliente.getNome() + "...\n");
 
                                     // Selecionar os itens do cardápio para o pedido
-                                    PedidoService.cadastrarItens(pedido, itemCardapioService);
+                                    boolean atendenteFinalizou = false;
+                                    List<PedidoItemCardapio> itensDoPedido = pedido.getItens();
+                                    while (!atendenteFinalizou) {
+                                        ItemCardapio item;
+
+                                        while (true) {
+                                            itemCardapioService.listarTodos();
+                                            int codigoItem = InputValidador.lerInt("Código do item do cardápio: ", "\nErro: o código informado não é numerico.\n");
+                                            item = itemCardapioService.encontrarPorCodigo(codigoItem);
+                                            if (item != null) {
+                                                break;
+                                            }
+                                            System.out.println("\nErro: nenhum item no cardápio com o código informado.\n");
+                                        }
+                                        int quantidade = InputValidador.lerInt("Informe a quantidade para " + item.getNome() + ": ", "Erro: quantidade informada não é um número válido.");
+                                        itensDoPedido.add(new PedidoItemCardapio(item, quantidade));
+                                        System.out.println("Item \"" + item.getNome() + "\" (" + quantidade + "x) adicionado com sucesso ao pedido.\n");
+                                        System.out.print("Adicionar um novo item (digite \"n\" para finalizar)? ");
+                                        String resposta = sc.nextLine().trim();
+                                        atendenteFinalizou = resposta.equals("n") || resposta.equals("N");
+
+                                    }
 
                                     // Mostrar informações do pedido
                                     System.out.println("\n" + "-".repeat(70));
@@ -167,7 +167,7 @@ public class Main {
                                     System.out.print("Digite \"s\" para confirmar o pedido... ");
                                     String resposta = sc.nextLine().trim();
                                     if (resposta.equals("s") || resposta.equals("S")) {
-                                        pedidos.add(pedido);
+                                        pedidoService.cadastrarPedido(pedido);
                                         System.out.println("Pedido cadastrado com sucesso.");
                                     } else {
                                         System.out.println("Pedido cancelado.");
@@ -175,11 +175,12 @@ public class Main {
 
                                 }
                                 case "2" -> {
-                                    if (pedidos.isEmpty()) {
+                                    if (pedidoService.listarTodos().isEmpty()) {
                                         System.out.println(msgSemPedidos);
                                         break;
                                     }
-                                    Pedido pedido = pedidoServices.selecionar();
+
+                                    Pedido pedido = selecionarPedido(pedidoService);
                                     StatusPedido statusAtual = pedido.getStatus();
                                     if (PedidoService.atualizarStatus(pedido)) {
                                         System.out.println("Status alterado de " + statusAtual + " para " + pedido.getStatus() + ".");
@@ -190,25 +191,20 @@ public class Main {
                                 }
                                 case "3" -> {
                                     // Consultar Pedido por Status
-                                    if (pedidos.isEmpty()) {
+                                    if (pedidoService.listarTodos().isEmpty()) {
                                         System.out.println(msgSemPedidos);
                                         break;
                                     }
 
                                     // Selecionar um status válido
-                                    System.out.println();
-                                    StatusPedido status = StatusPedidoService.selecionar("Status a verificar: ");
+                                    StatusPedido status = capturarStatusPedido(sc);
 
                                     // Exibir somente pedidos contendo esse status
-                                    boolean pedidoExibido = false;
-                                    for (Pedido pedido : pedidos) {
-                                        if (pedido.getStatus().equals(status)) {
-                                            System.out.println(pedido.toString());
-                                            pedidoExibido = true;
-                                        }
-                                    }
-                                    if (!pedidoExibido) {
+                                    List<Pedido> pedidosStatus = pedidoService.encotrarPorStatus(status);
+                                    if (pedidosStatus.isEmpty()) {
                                         System.out.println("Nenhum pedido encontrado com este status.");
+                                    } else {
+                                        pedidosStatus.forEach(System.out::println);
                                     }
                                 }
                                 case "4" -> voltar = true;
@@ -249,10 +245,53 @@ public class Main {
                         System.out.println("Saindo...!");
                         break;
                     }
-                    default -> System.out.println(
-                            "Opção inválida.");
+                    default -> System.out.println("Opção inválida.");
                 }
             }
+        }
+    }
+
+    private static Cliente selecionarCliente(ClienteService clienteService) {
+        while (true) {
+            System.out.println();
+            clienteService.listarTodos().forEach(System.out::println);
+            int codigoCliente = InputValidador.lerInt("Código do cliente: ", "Erro: o código informado não é numérico.");
+            Cliente cliente = clienteService.encontrarPorCodigo(codigoCliente);
+            if (cliente != null) {
+                return cliente;
+            }
+            System.out.println("Erro: nenhum cliente com o código informado.");
+        }
+    }
+
+    private static Pedido selecionarPedido(PedidoService pedidoService) {
+        while (true) {
+            pedidoService.listarTodos().forEach(System.out::println);
+            int codigoPedido = InputValidador.lerInt("Código do pedido: ", "Erro: o código informado não é numérico.");
+            Pedido pedido = pedidoService.encontrarPorCodigo(codigoPedido);
+            if (pedido != null) {
+                return pedido;
+            }
+            System.out.println("Erro: nenhum pedido com o código informado.");
+        }
+    }
+
+    private static StatusPedido capturarStatusPedido(Scanner sc) {
+        List<StatusPedido> statusDisponiveis = Arrays.asList(StatusPedido.values());
+
+        while (true) {
+            int numeroAtual = 1;
+            for (StatusPedido status : StatusPedido.values()) {
+                System.out.printf("[%d] %s%n", numeroAtual, status);
+                numeroAtual++;
+            }
+            int numeroEscolhido = InputValidador.lerInt("Status a verificar: ", "Erro: número de status inválido.");
+            try {
+                return statusDisponiveis.get(numeroEscolhido - 1);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Erro: nenhum status com o número informado.");
+            }
+            System.out.print("\n" + "Status a verificar: ");
         }
     }
 
