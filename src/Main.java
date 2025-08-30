@@ -1,264 +1,143 @@
-import models.Cliente;
-import models.ItemCardapio;
-import models.Pedido;
-import models.StatusPedido;
-import services.ClienteServices;
-import services.PedidoServices;
-import services.StatusPedidoServices;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import models.*;
+import reports.PedidoItemCardapioReport;
+import reports.RelatorioDetalhado;
+import reports.RelatorioSimplificado;
+import repository.ClienteRepository;
+import repository.ItemCardapioRepository;
+import repository.PedidoRepository;
+import services.ClienteService;
+import services.ItemCardapioService;
+import services.PedidoService;
+import utils.InputUtil;
+
+import static utils.Constantes.*;
+
 
 public class Main {
+    static final String msgSemPedidos = "Nenhum pedido cadastrado.";
+    static final String msgSemClientes = "Nenhum cliente cadastrado.";
+    static final String msgSemItens = "Nenhum item cadastrado.";
 
     public static void main(String[] args) {
         try (Scanner sc = new Scanner(System.in)) {
-            List<ItemCardapio> itens = new ArrayList<>();
-            List<Cliente> clientes = new ArrayList<>();
-            List<Pedido> pedidos = new ArrayList<>();
+            ClienteService clienteService = new ClienteService(new ClienteRepository(new ArrayList<>(), new Random()));
+            ItemCardapioService itemCardapioService = new ItemCardapioService(new ItemCardapioRepository(new ArrayList<>(), new Random()));
+            PedidoService pedidoService = new PedidoService(new PedidoRepository(new ArrayList<>()));
 
-            ClienteServices clienteServices = new ClienteServices(clientes);
-            PedidoServices pedidoServices = new PedidoServices(pedidos);
-
-            Random rand = new Random();
             boolean saidaSolicitada = false;
 
-            String msgSemPedidos = "Nenhum pedido cadastrado.";
-            String msgSemClientes = "Nenhum cliente cadastrado.";
-            String msgSemItens = "Nenhum item cadastrado.";
-
-            itens.add(new ItemCardapio(1029, "MACARRONADA", 10));
-            clientes.add(new Cliente(4821, "DENILSON SANTOS", "75 9 0101-0202"));
-
             while (!saidaSolicitada) {
-                System.out.println("==== MENU PRINCIPAL ====");
-                System.out.println("1 - Gerenciar Cardápio");
-                System.out.println("2 - Gerenciar Clientes");
-                System.out.println("3 - Gerenciar Pedidos");
-                System.out.println("4 - Gerenciar Relatórios");
-                System.out.println("5 - Sair");
-                System.out.print("Escolha uma opção: ");
-
+                printMenu();
+                //
                 String entrada = sc.nextLine().trim();
-
                 switch (entrada) {
                     case "1" -> {
                         boolean voltar = false;
                         while (!voltar) {
-                            System.out.println("\n--- GERENCIAR CARDÁPIO ---");
-                            System.out.println("1 - Cadastrar Novo Item");
-                            System.out.println("2 - Listar Itens");
-                            System.out.println("3 - Voltar");
-                            System.out.print("Escolha uma opção: ");
-
+                            printMenuItemCardapio();
+                            //
                             String opc = sc.nextLine().trim();
-
                             switch (opc) {
                                 case "1" -> {
-                                    String nome;
-                                    while (true) {
-                                        System.out.print("Nome do item: ");
-                                        nome = sc.nextLine().trim();
-                                        if (nome.isEmpty()) {
-                                            System.out.println("Erro: o nome não pode ficar vazio.");
-                                        } else {
-                                            break;
-                                        }
-                                    }
-
-                                    double valor;
-                                    while (true) {
-                                        System.out.print("Valor do item (ex: 12.50): ");
-                                        String valorStr = sc.nextLine().trim();
-                                        try {
-                                            valor = Double.parseDouble(valorStr);
-                                            if (valor < 0) {
-                                                System.out.println("Erro: o valor não pode ser negativo.");
-                                            } else {
-                                                break;
-                                            }
-                                        } catch (NumberFormatException e) {
-                                            System.out.println("Erro: informe um número válido (use ponto para decimal).");
-                                        }
-                                    }
-                                    int codigoAleatorio;
-                                    while (true) {
-                                        codigoAleatorio = rand.nextInt(9000) + 1000;
-                                        boolean existe = false;
-                                        for (ItemCardapio it : itens) {
-                                            if (it.getCodigo() == codigoAleatorio) {
-                                                existe = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!existe) {
-                                            break;
-                                        }
-                                    }
-
-                                    ItemCardapio novo = new ItemCardapio(codigoAleatorio, nome, valor);
-                                    itens.add(novo);
+                                    String nome = capturarNomeItemCardapio();
+                                    double valor = capturarValorItemCardapio(sc);
+                                    itemCardapioService.registrarNovoItemCardapio(new ItemCardapio(nome, valor));
                                     System.out.println("Item cadastrado com sucesso!\n");
                                 }
-
                                 case "2" -> {
                                     System.out.println("\n--- ITENS DO CARDÁPIO ---");
-                                    if (itens.isEmpty()) {
+                                    if (itemCardapioService.listarTodos().isEmpty()) {
                                         System.out.println("Nenhum item cadastrado.");
                                     } else {
-                                        for (ItemCardapio it : itens) {
-                                            System.out.printf("Código: %d | Nome: %s | Valor: R$ %.2f%n",
-                                                    it.getCodigo(), it.getNome(), it.getValor());
-                                        }
+                                        itemCardapioService.listarTodos().forEach(System.out::println);
                                     }
                                     System.out.println();
                                 }
-
-                                case "3" ->
-                                        voltar = true;
-
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                case "3" -> voltar = true;
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
-
                     }
+
                     case "2" -> {
                         boolean voltar = false;
                         while (!voltar) {
-                            System.out.println("\n--- GERENCIAR CLIENTES ---");
-                            System.out.println("1 - Cadastrar Novo Cliente");
-                            System.out.println("2 - Listar Clientes");
-                            System.out.println("3 - Voltar");
-                            System.out.print("Escolha uma opção: ");
-
+                            printMenuCliente();
+                            //
                             String opc = sc.nextLine().trim();
-
                             switch (opc) {
                                 case "1" -> {
-                                    String nome;
-                                    while (true) {
-                                        System.out.print("Nome do cliente: ");
-                                        nome = sc.nextLine().trim();
-                                        if (nome.isEmpty()) {
-                                            System.out.println("Erro: o nome não pode ficar vazio.");
-                                        } else {
-                                            break;
-                                        }
-                                    }
-
-                                    String telefone;
-                                    while (true) {
-                                        System.out.print("Telefone do cliente (ex: 99 99999-9999): ");
-                                        telefone = sc.nextLine().trim();
-                                        if (telefone.isEmpty()) {
-                                            System.out.println("Erro: o telefone não pode ficar vazio.");
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                    int codigoAleatorio;
-                                    while (true) {
-                                        codigoAleatorio = rand.nextInt(9000) + 1000;
-                                        boolean existe = false;
-                                        for (Cliente cl : clientes) {
-                                            if (cl.getCodigo() == codigoAleatorio) {
-                                                existe = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!existe) {
-                                            break;
-                                        }
-                                    }
-
-                                    Cliente novo = new Cliente(codigoAleatorio, nome, telefone);
-                                    clientes.add(novo);
+                                    String nome = capturarNomeCliente();
+                                    String telefone = capturarTelefoneCliente();
+                                    clienteService.registrarNovoCliente(new Cliente(nome, telefone));
                                     System.out.println("Cliente cadastrado com sucesso!\n");
                                 }
 
                                 case "2" -> {
                                     System.out.println("\n--- CLIENTES ---");
-                                    if (clientes.isEmpty()) {
+                                    if (clienteService.listarTodos().isEmpty()) {
                                         System.out.println("Nenhum cliente cadastrado.");
                                     } else {
-                                        for (Cliente cl : clientes) {
-                                            System.out.printf("Código: %d | Nome: %s | Telefone: %s%n",
-                                                    cl.getCodigo(), cl.getNome(), cl.getTelefone());
-                                        }
+                                        clienteService.listarTodos().forEach(System.out::println);
                                     }
                                     System.out.println();
                                 }
 
-                                case "3" ->
-                                        voltar = true;
+                                case "3" -> voltar = true;
 
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
                     }
+
                     case "3" -> {
                         boolean voltar = false;
                         while (!voltar) {
-                            System.out.println("\n--- GERENCIAR PEDIDOS ---");
-                            System.out.println("1 - Cadastrar Novo Pedido");
-                            System.out.println("2 - Atualizar Status do Pedido");
-                            System.out.println("3 - Consultar Pedido por Status");
-                            System.out.println("4 - Voltar");
-                            System.out.print("Escolha uma opção: ");
-
+                            printMenuPedido();
+                            //
                             String opc = sc.nextLine().trim();
-
                             switch (opc) {
                                 case "1" -> {
-
-                                    // Verificar se existem clientes ou itens cadastrados
-                                    if (itens.isEmpty()) {
-                                        System.out.println(msgSemItens);
-                                        break;
-                                    }
-                                    if (clientes.isEmpty()) {
-                                        System.out.println(msgSemClientes);
+                                    String msgRetorno = validarDadosIniciaisPedido(clienteService, itemCardapioService);
+                                    if (msgRetorno != null) {
+                                        System.out.println();
+                                        System.out.println(msgRetorno);
                                         break;
                                     }
 
-                                    // Selecionar um cliente válido
-                                    Cliente cliente = clienteServices.selecionar();
-
-                                    // Iniciar o novo pedido do cliente
-                                    int codigo = pedidoServices.obterNovoCodigo();
-                                    Pedido pedido = new Pedido(codigo, cliente);
+                                    Cliente cliente = selecionarCliente(clienteService);
                                     System.out.println("\nPedido iniciado para " + cliente.getNome() + "...\n");
 
-                                    // Selecionar os itens do cardápio para o pedido
-                                    PedidoServices.cadastrarItens(pedido, itens);
+                                    Pedido pedido = new Pedido(pedidoService.obterNovoCodigo(), cliente);
+
+
+                                    pedido.getItens().addAll(capturarItensPedido(sc, itemCardapioService));
 
                                     // Mostrar informações do pedido
                                     System.out.println("\n" + "-".repeat(70));
-                                    System.out.println(pedido.toString());
+                                    System.out.println(pedido);
                                     System.out.println("-".repeat(70));
                                     System.out.println();
                                     System.out.print("Digite \"s\" para confirmar o pedido... ");
-                                    String resposta = sc.nextLine().trim();
-                                    if (resposta.equals("s") || resposta.equals("S")) {
-                                        pedidos.add(pedido);
+                                    String resposta = sc.nextLine().trim().toUpperCase();
+                                    if (resposta.equals("S")) {
+                                        pedidoService.cadastrarPedido(pedido);
                                         System.out.println("Pedido cadastrado com sucesso.");
                                     } else {
                                         System.out.println("Pedido cancelado.");
                                     }
-
                                 }
                                 case "2" -> {
-                                    if (pedidos.isEmpty()) {
+                                    if (pedidoService.listarTodos().isEmpty()) {
                                         System.out.println(msgSemPedidos);
                                         break;
                                     }
-                                    Pedido pedido = pedidoServices.selecionar();
+
+                                    Pedido pedido = selecionarPedido(pedidoService);
                                     StatusPedido statusAtual = pedido.getStatus();
-                                    if (PedidoServices.atualizarStatus(pedido)) {
+                                    if (pedidoService.atualizarStatus(pedido)) {
                                         System.out.println("Status alterado de " + statusAtual + " para " + pedido.getStatus() + ".");
                                     } else {
                                         System.out.println("Status " + statusAtual + " não pôde ser alterado.");
@@ -267,34 +146,28 @@ public class Main {
                                 }
                                 case "3" -> {
                                     // Consultar Pedido por Status
-                                    if (pedidos.isEmpty()) {
+                                    if (pedidoService.listarTodos().isEmpty()) {
                                         System.out.println(msgSemPedidos);
                                         break;
                                     }
 
                                     // Selecionar um status válido
-                                    System.out.println();
-                                    StatusPedido status = StatusPedidoServices.selecionar("Status a verificar: ");
+                                    StatusPedido status = capturarStatusPedido();
 
                                     // Exibir somente pedidos contendo esse status
-                                    boolean pedidoExibido = false;
-                                    for (Pedido pedido: pedidos) {
-                                        if (pedido.getStatus().equals(status)) {
-                                            System.out.println(pedido.toString());
-                                            pedidoExibido = true;
-                                        }
-                                    }
-                                    if (!pedidoExibido) {
+                                    List<Pedido> pedidosStatus = pedidoService.encotrarPorStatus(status);
+                                    if (pedidosStatus.isEmpty()) {
                                         System.out.println("Nenhum pedido encontrado com este status.");
+                                    } else {
+                                        pedidosStatus.forEach(System.out::println);
                                     }
                                 }
-                                case "4" ->
-                                        voltar = true;
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                case "4" -> voltar = true;
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
                     }
+
                     case "4" -> {
                         boolean voltar = false;
                         while (!voltar) {
@@ -309,28 +182,171 @@ public class Main {
                             switch (opc) {
                                 case "1" -> {
                                     // Implementação do relatório simplificado (um resumo do dia)
+                                    RelatorioSimplificado relatorioSimplificado = pedidoService.relatorioSimplificado();
+                                    System.out.println();
+                                    System.out.println("---- RELATÓRIO SIMPLIFICADO ----");
+                                    System.out.println(" Quantidade: " + relatorioSimplificado.getQuantidade());
+                                    System.out.println("Valor Total: " + relatorioSimplificado.getValorArrecadado());
+                                    System.out.println("--------------------------------");
                                 }
                                 case "2" -> {
                                     // Implementação do relatório detalhado (listando os pedidos e o total de cada um)
+                                    List<RelatorioDetalhado> relatorioDetalhados = pedidoService.relatorioDetalhado();
+                                    System.out.println();
 
+                                    if (relatorioDetalhados.isEmpty()) {
+                                        System.out.println("Sem dados para emitir o relátorio");
+                                        break;
+                                    }
+
+                                    System.out.println("------ RELATÓRIO DETALHADO ------");
+                                    for (RelatorioDetalhado relatorioDetalhado : relatorioDetalhados) {
+                                        System.out.println("     Pedido: " + relatorioDetalhado.getCodigoPedido());
+                                        System.out.println("    Cliente: " + relatorioDetalhado.getCliente().getCodigo() + " - " + relatorioDetalhado.getCliente().getNome());
+                                        System.out.println("Valor Total: " + relatorioDetalhado.getPrecoTotal());
+                                        System.out.println("----------  I T E N S  ----------");
+                                        for (PedidoItemCardapioReport itens : relatorioDetalhado.getItens()) {
+                                            System.out.println("             Produto: " + itens.getIdCardapio() + " - " + itens.getNome());
+                                            System.out.println("          Quantidade: " + itens.getQuantidade());
+                                            System.out.println("         Valor Unit.: " + itens.getValor());
+                                            System.out.println("         Valor Total: " + itens.getValorTotal());
+                                            System.out.println("          -  -  -  -  ");
+                                        }
+                                        System.out.println("--------------------------------");
+                                    }
                                 }
                                 case "3" -> {
                                     voltar = true;
                                 }
-                                default ->
-                                        System.out.println("Opção inválida.");
+                                default -> System.out.println("Opção inválida.");
                             }
                         }
                     }
+
                     case "5" -> {
                         saidaSolicitada = true;
                         System.out.println("Saindo...!");
-                        break;
                     }
-                    default ->
-                            System.out.println("Opção inválida.");
+                    default -> System.out.println("Opção inválida.");
                 }
             }
         }
     }
+
+
+    private static String validarDadosIniciaisPedido(ClienteService clienteService, ItemCardapioService itemCardapioService) {
+        // Verificar se existem itens cadastrados
+        if (itemCardapioService.listarTodos().isEmpty()) {
+            return msgSemItens;
+        }
+
+        // Verificar se existem clientes cadastrados
+        if (clienteService.listarTodos().isEmpty()) {
+            return msgSemClientes;
+        }
+
+        return null;
+    }
+
+    private static Cliente selecionarCliente(ClienteService clienteService) {
+        while (true) {
+            System.out.println();
+            clienteService.listarTodos().forEach(System.out::println);
+            int codigoCliente = InputUtil.capturarInt("Código do cliente: ", "Erro: o código informado não é numérico.");
+            Cliente cliente = clienteService.encontrarPorCodigo(codigoCliente);
+            if (cliente != null) {
+                return cliente;
+            }
+            System.out.println("Erro: nenhum cliente com o código informado.");
+        }
+    }
+
+    private static Pedido selecionarPedido(PedidoService pedidoService) {
+        while (true) {
+            pedidoService.listarTodos().forEach(System.out::println);
+            int codigoPedido = InputUtil.capturarInt("Código do pedido: ", "Erro: o código informado não é numérico.");
+            Pedido pedido = pedidoService.encontrarPorCodigo(codigoPedido);
+            if (pedido != null) {
+                return pedido;
+            }
+            System.out.println("Erro: nenhum pedido com o código informado.");
+        }
+    }
+
+    private static List<PedidoItemCardapio> capturarItensPedido(Scanner sc, ItemCardapioService itemCardapioService) {
+        itemCardapioService.listarTodos().forEach(System.out::println);
+
+        boolean atendenteFinalizou = false;
+        List<PedidoItemCardapio> itens = new ArrayList<>();
+        while (!atendenteFinalizou) {
+            ItemCardapio item;
+
+            while (true) {
+                itemCardapioService.listarTodos();
+                int codigoItem = InputUtil.capturarInt("Código do item do cardápio: ", "\nErro: o código informado não é numerico.\n");
+                item = itemCardapioService.encontrarPorCodigo(codigoItem);
+                if (item != null) {
+                    break;
+                }
+                System.out.println("\nErro: nenhum item no cardápio com o código informado.\n");
+            }
+            int quantidade = InputUtil.capturarInt("Informe a quantidade para " + item.getNome() + ": ", "Erro: quantidade informada não é um número válido.");
+            itens.add(new PedidoItemCardapio(item, quantidade));
+            System.out.println("Item \"" + item.getNome() + "\" (" + quantidade + "x) adicionado com sucesso ao pedido.\n");
+            System.out.print("Adicionar um novo item (digite \"n\" para finalizar)? ");
+            String resposta = sc.nextLine().trim();
+            atendenteFinalizou = resposta.equals("n") || resposta.equals("N");
+
+        }
+        return itens;
+    }
+
+    private static StatusPedido capturarStatusPedido() {
+        List<StatusPedido> statusDisponiveis = Arrays.asList(StatusPedido.values());
+
+        while (true) {
+            int numeroAtual = 1;
+            for (StatusPedido status : StatusPedido.values()) {
+                System.out.printf("[%d] %s%n", numeroAtual, status);
+                numeroAtual++;
+            }
+            int numeroEscolhido = InputUtil.capturarInt("Status a verificar: ", "Erro: número de status inválido.");
+            try {
+                return statusDisponiveis.get(numeroEscolhido - 1);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Erro: nenhum status com o número informado.");
+            }
+            System.out.print("\n" + "Status a verificar: ");
+        }
+    }
+
+    private static double capturarValorItemCardapio(Scanner sc) {
+        while (true) {
+            System.out.print("Valor do item (ex: 12.50): ");
+            String valorStr = sc.nextLine().trim();
+            try {
+                double valor = Double.parseDouble(valorStr);
+                if (valor < 0) {
+                    System.out.println("Erro: o valor não pode ser negativo.");
+                } else {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Erro: informe um número válido (use ponto para decimal).");
+            }
+        }
+    }
+
+    private static String capturarNomeItemCardapio() {
+        return InputUtil.capturarString("Nome do item: ", "Erro: o nome não pode ficar vazio.");
+    }
+
+    private static String capturarNomeCliente() {
+        return InputUtil.capturarString("Nome do cliente: ", "Erro: o nome não pode ficar vazio.");
+    }
+
+    private static String capturarTelefoneCliente() {
+        return InputUtil.capturarString("Telefone do cliente (ex: 99 99999-9999): ", "Erro: o telefone não pode ficar vazio.");
+    }
+
 }

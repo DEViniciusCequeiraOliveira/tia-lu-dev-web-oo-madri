@@ -41,6 +41,10 @@ public class Pedido {
         this.cliente = cliente;
     }
 
+    public void setStatus(StatusPedido status) {
+        this.status = status;
+    }
+
     public LocalDateTime getDataHora() {
         return dataHora;
     }
@@ -53,14 +57,11 @@ public class Pedido {
         return status;
     }
 
-    public void setStatus(StatusPedido status) {
-        this.status = status;
-    }
-
     public List<PedidoItemCardapio> getItens() {
         return itens;
     }
 
+    @Override
     public String toString() {
         DateTimeFormatter formatoDataHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         String cabecalhoTemplate = "Pedido: %d | Horário: %s | Status: %s";
