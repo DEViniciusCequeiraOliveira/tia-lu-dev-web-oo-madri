@@ -1,10 +1,16 @@
 package services;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import models.Pedido;
+import models.PedidoItemCardapio;
 import models.StatusPedido;
+import reports.RelatorioDetalhado;
+import reports.RelatorioSimplificado;
 import repository.PedidoRepository;
 
 public class PedidoService {
@@ -45,4 +51,31 @@ public class PedidoService {
         return false;
     }
 
+    public RelatorioSimplificado relatorioSimplificado() {
+        int quantidade = 0;
+        double valorArrecadado = 0;
+        for (Pedido pedido : this.pedidoRepository.findAll()) {
+            if (pedido.getDataHora().toLocalDate().equals(LocalDate.now())) {
+                quantidade += 1;
+                for (PedidoItemCardapio pedidoItemCardapio : pedido.getItens()) {
+                    valorArrecadado += pedidoItemCardapio.getQuantidade() * pedidoItemCardapio.getItemCardapio().getValor();
+                }
+
+            }
+        }
+
+        return new RelatorioSimplificado(quantidade, valorArrecadado);
+    }
+
+    public List<RelatorioDetalhado> relatorioDetalhado() {
+        List<RelatorioDetalhado> dados = new ArrayList<>();
+
+        for (Pedido pedido : this.pedidoRepository.findAll()) {
+            if (pedido.getDataHora().toLocalDate().equals(LocalDate.now())) {
+                dados.add(new RelatorioDetalhado(pedido));
+            }
+        }
+
+        return dados;
+    }
 }

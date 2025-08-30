@@ -1,6 +1,9 @@
 import java.util.*;
 
 import models.*;
+import reports.PedidoItemCardapioReport;
+import reports.RelatorioDetalhado;
+import reports.RelatorioSimplificado;
 import repository.ClienteRepository;
 import repository.ItemCardapioRepository;
 import repository.PedidoRepository;
@@ -8,6 +11,7 @@ import services.ClienteService;
 import services.ItemCardapioService;
 import services.PedidoService;
 import utils.InputUtil;
+
 import static utils.Constantes.*;
 
 
@@ -98,6 +102,7 @@ public class Main {
                                 case "1" -> {
                                     String msgRetorno = validarDadosIniciaisPedido(clienteService, itemCardapioService);
                                     if (msgRetorno != null) {
+                                        System.out.println();
                                         System.out.println(msgRetorno);
                                         break;
                                     }
@@ -106,6 +111,8 @@ public class Main {
                                     System.out.println("\nPedido iniciado para " + cliente.getNome() + "...\n");
 
                                     Pedido pedido = new Pedido(pedidoService.obterNovoCodigo(), cliente);
+
+
                                     pedido.getItens().addAll(capturarItensPedido(sc, itemCardapioService));
 
                                     // Mostrar informações do pedido
@@ -129,10 +136,11 @@ public class Main {
                                     }
 
                                     Pedido pedido = selecionarPedido(pedidoService);
+                                    StatusPedido statusAtual = pedido.getStatus();
                                     if (pedidoService.atualizarStatus(pedido)) {
-                                        System.out.println("Status alterado de " + pedido.getStatus() + " para " + pedido.getStatus() + ".");
+                                        System.out.println("Status alterado de " + statusAtual + " para " + pedido.getStatus() + ".");
                                     } else {
-                                        System.out.println("Status " + pedido.getStatus() + " não pôde ser alterado.");
+                                        System.out.println("Status " + statusAtual + " não pôde ser alterado.");
                                     }
 
                                 }
@@ -174,10 +182,38 @@ public class Main {
                             switch (opc) {
                                 case "1" -> {
                                     // Implementação do relatório simplificado (um resumo do dia)
+                                    RelatorioSimplificado relatorioSimplificado = pedidoService.relatorioSimplificado();
+                                    System.out.println();
+                                    System.out.println("---- RELATÓRIO SIMPLIFICADO ----");
+                                    System.out.println(" Quantidade: " + relatorioSimplificado.getQuantidade());
+                                    System.out.println("Valor Total: " + relatorioSimplificado.getValorArrecadado());
+                                    System.out.println("--------------------------------");
                                 }
                                 case "2" -> {
                                     // Implementação do relatório detalhado (listando os pedidos e o total de cada um)
+                                    List<RelatorioDetalhado> relatorioDetalhados = pedidoService.relatorioDetalhado();
+                                    System.out.println();
 
+                                    if (relatorioDetalhados.isEmpty()) {
+                                        System.out.println("Sem dados para emitir o relátorio");
+                                        break;
+                                    }
+
+                                    System.out.println("------ RELATÓRIO DETALHADO ------");
+                                    for (RelatorioDetalhado relatorioDetalhado : relatorioDetalhados) {
+                                        System.out.println("     Pedido: " + relatorioDetalhado.getCodigoPedido());
+                                        System.out.println("    Cliente: " + relatorioDetalhado.getCliente().getCodigo() + " - " + relatorioDetalhado.getCliente().getNome());
+                                        System.out.println("Valor Total: " + relatorioDetalhado.getPrecoTotal());
+                                        System.out.println("----------  I T E N S  ----------");
+                                        for (PedidoItemCardapioReport itens : relatorioDetalhado.getItens()) {
+                                            System.out.println("             Produto: " + itens.getIdCardapio() + " - " + itens.getNome());
+                                            System.out.println("          Quantidade: " + itens.getQuantidade());
+                                            System.out.println("         Valor Unit.: " + itens.getValor());
+                                            System.out.println("         Valor Total: " + itens.getValorTotal());
+                                            System.out.println("          -  -  -  -  ");
+                                        }
+                                        System.out.println("--------------------------------");
+                                    }
                                 }
                                 case "3" -> {
                                     voltar = true;
@@ -238,6 +274,8 @@ public class Main {
     }
 
     private static List<PedidoItemCardapio> capturarItensPedido(Scanner sc, ItemCardapioService itemCardapioService) {
+        itemCardapioService.listarTodos().forEach(System.out::println);
+
         boolean atendenteFinalizou = false;
         List<PedidoItemCardapio> itens = new ArrayList<>();
         while (!atendenteFinalizou) {
