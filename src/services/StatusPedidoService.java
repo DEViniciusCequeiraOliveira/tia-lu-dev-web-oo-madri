@@ -2,31 +2,25 @@ package services;
 
 import java.util.Arrays;
 import java.util.List;
+
+import models.Pedido;
 import models.StatusPedido;
-import utils.InputValidador;
 
 public class StatusPedidoService {
-/*
-    public static void mostrarTodos() {
-        int numeroAtual = 1;
-        for (StatusPedido status : StatusPedido.values()) {
-            System.out.printf("[%d] %s%n", numeroAtual, status);
-            numeroAtual++;
-        }
+
+    public StatusPedidoService() {
+
     }
 
-    public static StatusPedido selecionar(String prompt) {
-        List<StatusPedido> statusDisponiveis = Arrays.asList(StatusPedido.values());
-        while (true) {
-            mostrarTodos();
-            int numeroEscolhido = InputValidador.lerInt(prompt, "Erro: número de status inválido.");
-            try {
-                return statusDisponiveis.get(numeroEscolhido - 1);
-            } catch (IndexOutOfBoundsException e) {
-                System.out.println("Erro: nenhum status com o número informado.");
-            }
-            System.out.print("\n" + prompt);
+    public boolean atualizarStatus(Pedido pedido) {
+        List<StatusPedido> statusPossiveis = Arrays.asList(StatusPedido.values());
+        int indiceStatusAtual = statusPossiveis.indexOf(pedido.getStatus());
+        boolean ultimoStatusAlcancado = indiceStatusAtual == (statusPossiveis.size() - 1);
+        if (!ultimoStatusAlcancado) {
+            pedido.setStatus(statusPossiveis.get(indiceStatusAtual + 1));
+            return true;
         }
+        return false;
     }
- */
+
 }

@@ -50,4 +50,8 @@ public class PedidoRepository {
     public void create(Pedido pedido) {
         this.pedidos.add(pedido);
     }
+
+    public void updateStatus(Pedido pedido, StatusPedido statusPedido) {
+        pedido.setStatus(statusPedido);
+    }
 }

@@ -1,6 +1,5 @@
 package repository;
 
-import models.Cliente;
 import models.ItemCardapio;
 
 import java.util.List;
